@@ -4,4 +4,5 @@ enum class DataState {
     LoadingData,
     LoadedData,
     NoLoadedData,
+    CantAccessServer,
 }

@@ -1,25 +1,21 @@
 package org.penakelex.ratingphysics.feature_rating.presentation.enter
 
-import android.content.Context
+import android.app.Application
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
-import org.penakelex.ratingphysics.feature_rating.data.repository.InvalidPasswordException
+import kotlinx.io.IOException
 import org.penakelex.ratingphysics.feature_rating.presentation.util.getFileNameByUri
 import org.penakelex.ratingphysics.feature_rating.presentation.util.saveFileToCache
-import javax.inject.Inject
 
-@HiltViewModel
-class EnterViewModel @Inject constructor(
-    @ApplicationContext private val context: Context,
+class EnterViewModel(
+    private val context: Application,
 ) : ViewModel() {
     private val _password = mutableStateOf(PasswordState())
     val password: State<PasswordState> = _password
@@ -41,7 +37,8 @@ class EnterViewModel @Inject constructor(
 
                 _password.value = password.value.copy(
                     value = passwordValue,
-                    isCorrect = enteredPassword.length < 5 && enteredPassword.matches(Regex("\\d+"))
+                    isCorrect = enteredPassword.length <= 5
+                            && enteredPassword.matches(Regex("\\d+"))
                 )
             }
 
@@ -70,32 +67,37 @@ class EnterViewModel @Inject constructor(
                 val password = password.value
                 val file = file.value
 
-                if (password.value.length != 5 || password.value.matches(Regex("\\d+")))
+                var isPasswordCorrect = true
+                var isFileValid = true
+
+                if (password.value.length !in 4..5
+                    || !password.value.matches(Regex("\\d+"))
+                ) {
                     _password.value = password.copy(isCorrect = false)
+                    isPasswordCorrect = false
+                }
 
-                if (file.uri == null || getFileNameByUri(file.uri, context) == null)
+                if (file.uri == null || getFileNameByUri(file.uri, context) == null) {
                     _file.value = file.copy(isValid = false)
+                    isFileValid = false
+                }
 
-                if (!password.isCorrect || !file.isValid)
+                if (!isPasswordCorrect || !isFileValid)
                     return
 
                 val uri = file.uri ?: return
                 val fileName = file.name ?: return
 
                 viewModelScope.launch(Dispatchers.IO) {
-                    try {
+                    val uiEvent = try {
                         val cachedFileName = saveFileToCache(uri, fileName, context)
-                        _eventFlow.emit(
-                            UIEvent.ValidateData(password.value.toUInt(), cachedFileName)
-                        )
-                    } catch (exception: InvalidPasswordException) {
-                        _eventFlow.emit(
-                            UIEvent.ShowSnackbar(
-                                exception.message
-                                    ?: "Can't find rating data with given password"
-                            )
-                        )
+                        UIEvent.ValidateData(password.value.toUInt(), cachedFileName)
+                    } catch (exception: IOException) {
+                        exception.printStackTrace()
+                        UIEvent.ShowSnackbar("File $fileName not found in given path...")
                     }
+
+                    _eventFlow.emit(uiEvent)
                 }
             }
         }

@@ -2,6 +2,7 @@ package org.penakelex.ratingphysics.feature_rating.presentation.enter
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,33 +17,33 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import kotlinx.coroutines.flow.collectLatest
+import org.koin.androidx.compose.koinViewModel
 import org.penakelex.ratingphysics.R
 import org.penakelex.ratingphysics.feature_rating.presentation.util.Screen
 
 @Composable
 fun EnterScreen(
     navController: NavController,
-    viewModel: EnterViewModel = hiltViewModel()
+    viewModel: EnterViewModel = koinViewModel(),
 ) {
     val focusManager = LocalFocusManager.current
 
@@ -54,17 +55,24 @@ fun EnterScreen(
         onResult = { uri -> viewModel.onEvent(EnterEvent.FileSelected(uri)) }
     )
 
+    val snackbarHostState = remember {
+        SnackbarHostState()
+    }
+
     LaunchedEffect(Unit) {
         viewModel.eventFlow.collectLatest { event ->
             when (event) {
                 is EnterViewModel.UIEvent.ValidateData -> {
+                    val (studentPassword, fileName) = event
+                    val route = Screen.RatingDataScreen.route
+
                     navController.navigate(
-                        "%s?password={%d}&filePath={%s}"
-                            .format(Screen.RatingDataScreen.route, event.password, event.fileName)
+                        "${route}?password=${studentPassword}&filePath=${fileName}"
                     )
                 }
+
                 is EnterViewModel.UIEvent.ShowSnackbar -> {
-                    TODO()
+                    snackbarHostState.showSnackbar(event.message)
                 }
             }
         }
@@ -87,7 +95,7 @@ fun EnterScreen(
                 .fillMaxWidth()
         ) {
             Text(
-                text = "Пароль:",
+                text = stringResource(R.string.password_title),
                 fontSize = 28.sp,
             )
 
@@ -101,7 +109,7 @@ fun EnterScreen(
                     viewModel.onEvent(EnterEvent.EnteredPassword(it))
                 },
                 placeholder = {
-                    Text("Номер в группе + Номер группы (например, 1401)")
+                    Text(text = stringResource(R.string.password_hint))
                 },
                 textStyle = TextStyle(
                     fontSize = 24.sp,
@@ -119,7 +127,7 @@ fun EnterScreen(
 
         Column(modifier = Modifier) {
             Text(
-                text = "Файл:",
+                text = stringResource(R.string.file_title),
                 fontSize = 28.sp,
             )
 
@@ -128,32 +136,24 @@ fun EnterScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 10.dp),
+                    .padding(bottom = 10.dp)
+                    .clickable {
+                        fileSelectLauncher.launch(arrayOf("application/octet-stream"))
+                    },
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                IconButton(
+                Icon(
                     modifier = Modifier
+                        .padding(3.dp)
                         .size(48.dp),
-                    colors = IconButtonDefaults.iconButtonColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer
-                    ),
-                    onClick = {
-                        fileSelectLauncher.launch(arrayOf("application/octet-stream"))
-                    }
-                ) {
-                    Icon(
-                        modifier = Modifier
-                            .padding(3.dp)
-                            .fillMaxSize(),
-                        painter = painterResource(R.drawable.file_icon),
-                        contentDescription = "File",
-                    )
-                }
+                    painter = painterResource(R.drawable.file_icon),
+                    contentDescription = "File",
+                )
 
                 Spacer(modifier = Modifier.width(6.dp))
 
                 Text(
-                    text = file.name ?: "(Не выбран)",
+                    text = file.name ?: stringResource(R.string.file_not_chosen_hint),
                     fontSize = 24.sp,
                     color = if (file.isValid) Color.Unspecified else Color.Red
                 )
@@ -166,10 +166,12 @@ fun EnterScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .imePadding(),
-            onClick = { viewModel.onEvent(EnterEvent.ValidateData) }
+            onClick = {
+                viewModel.onEvent(EnterEvent.ValidateData)
+            }
         ) {
             Text(
-                text = "Далее",
+                text = stringResource(R.string.next_button_text),
                 fontSize = 24.sp,
             )
         }

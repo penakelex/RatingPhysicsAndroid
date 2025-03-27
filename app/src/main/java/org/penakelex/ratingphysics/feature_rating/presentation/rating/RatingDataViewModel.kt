@@ -1,23 +1,20 @@
 package org.penakelex.ratingphysics.feature_rating.presentation.rating
 
-import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.penakelex.ratingphysics.feature_rating.data.repository.CanNotAccessServerException
 import org.penakelex.ratingphysics.feature_rating.data.repository.InvalidPasswordException
 import org.penakelex.ratingphysics.feature_rating.domain.model.RatingData
 import org.penakelex.ratingphysics.feature_rating.domain.use_case.RatingUseCases
 import java.io.File
-import javax.inject.Inject
 
-@HiltViewModel
-class RatingDataViewModel @Inject constructor(
+class RatingDataViewModel(
     private val ratingUseCases: RatingUseCases,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -28,18 +25,23 @@ class RatingDataViewModel @Inject constructor(
     val data: State<DataState> = _data
 
     init {
-        this.viewModelScope.launch(Dispatchers.IO) {
-            Log.d("KEYS", savedStateHandle.keys().joinToString())
+        val password = savedStateHandle.get<Int>("password")?.toUInt()
+        val filePath = savedStateHandle.get<String>("filePath")
 
-            val password = savedStateHandle.get<Int>("password")!!.toUInt()
-            val filePath = savedStateHandle.get<String>("filePath")!!
-
-            try {
-                _ratingData.value = ratingUseCases.getRatingData(password, File(filePath))
-                _data.value = DataState.LoadedData
-            } catch (exception: InvalidPasswordException) {
-                exception.printStackTrace()
-                _data.value = DataState.NoLoadedData
+        if (password == null || filePath == null) {
+            _data.value = DataState.NoLoadedData
+        } else {
+            this.viewModelScope.launch(Dispatchers.IO) {
+                try {
+                    _ratingData.value = ratingUseCases.getRatingData(password, File(filePath))
+                    _data.value = DataState.LoadedData
+                } catch (exception: InvalidPasswordException) {
+                    exception.printStackTrace()
+                    _data.value = DataState.NoLoadedData
+                } catch (exception: CanNotAccessServerException) {
+                    exception.printStackTrace()
+                    _data.value = DataState.CantAccessServer
+                }
             }
         }
     }

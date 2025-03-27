@@ -1,3 +1,28 @@
 <resources>
     <string name="app_name">RatingPhysicsAndroid</string>
+    <string name="password_title">Пароль:</string>
+    <string name="password_hint">Номер в группе + Номер группы (например, 1401)</string>
+    <string name="file_title">Файл:</string>
+    <string name="file_not_chosen_hint">(Не выбран)</string>
+    <string name="next_button_text">Далее</string>
+    <string name="back_button_text">Назад</string>
+    <string name="full_name_title">ФИО</string>
+    <string name="group_title">Группа</string>
+    <string name="summary_title">Сумма</string>
+    <string name="rating_group_title">Рейтинг в группе</string>
+    <string name="rating_flow_title">Рейтинг в потоке</string>
+    <string name="colloquium_title">Коллоквиум</string>
+    <string name="cgt_cw_title">РГЗ/Контрольные работы</string>
+    <string name="lw_title">Лабораторные работы</string>
+    <string name="it_title">Индивидуальные задания</string>
+    <string name="essay_title">Реферат</string>
+    <string name="nirs_title">НИРС</string>
+    <string name="sum_practice_title">Сумма по практикам</string>
+    <string name="omissions_title">Пропуски</string>
+    <string name="no_data_label">Нет данных</string>
+    <string name="practical_lessons_title">Практические занятия</string>
+    <string name="was_not_in_class_label">(Не был(-а))</string>
+    <string name="cgt_title">РГЗ</string>
+    <string name="student_not_found_label">Не найден студент с данным паролем</string>
+    <string name="cant_access_server_label">Не удаётся подключиться к серверу</string>
 </resources>

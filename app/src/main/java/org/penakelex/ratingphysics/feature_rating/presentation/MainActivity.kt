@@ -10,44 +10,45 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import dagger.hilt.android.AndroidEntryPoint
+import org.koin.compose.KoinContext
 import org.penakelex.ratingphysics.feature_rating.presentation.enter.EnterScreen
 import org.penakelex.ratingphysics.feature_rating.presentation.rating.RatingDataScreen
 import org.penakelex.ratingphysics.feature_rating.presentation.util.Screen
 import org.penakelex.ratingphysics.ui.theme.RatingPhysicsAndroidTheme
 
-@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             RatingPhysicsAndroidTheme {
-                Surface(
-                    color = MaterialTheme.colorScheme.background,
-                ) {
-                    val navController = rememberNavController()
-
-                    NavHost(
-                        navController = navController,
-                        startDestination = Screen.EnterScreen.route,
+                KoinContext {
+                    Surface(
+                        color = MaterialTheme.colorScheme.background,
                     ) {
-                        composable(route = Screen.EnterScreen.route) {
-                            EnterScreen(navController)
-                        }
+                        val navController = rememberNavController()
 
-                        composable(
-                            route = "%s?password={password}&filePath={filePath}"
-                                .format(Screen.RatingDataScreen.route),
-                            arguments = listOf(
-                                navArgument(name = "password") {
-                                    type = NavType.IntType
-                                },
-                                navArgument(name = "filePath") {
-                                    type = NavType.StringType
-                                },
-                            )
+                        NavHost(
+                            navController = navController,
+                            startDestination = Screen.EnterScreen.route,
                         ) {
-                            RatingDataScreen(navController)
+                            composable(route = Screen.EnterScreen.route) {
+                                EnterScreen(navController)
+                            }
+
+                            composable(
+                                route = "%s?password={password}&filePath={filePath}"
+                                    .format(Screen.RatingDataScreen.route),
+                                arguments = listOf(
+                                    navArgument(name = "password") {
+                                        type = NavType.IntType
+                                    },
+                                    navArgument(name = "filePath") {
+                                        type = NavType.StringType
+                                    },
+                                )
+                            ) {
+                                RatingDataScreen(navController)
+                            }
                         }
                     }
                 }

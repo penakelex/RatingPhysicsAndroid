@@ -1,7 +1,17 @@
 package org.penakelex.ratingphysics
 
 import android.app.Application
-import dagger.hilt.android.HiltAndroidApp
+import org.koin.android.ext.koin.androidContext
+import org.koin.core.context.GlobalContext.startKoin
+import org.penakelex.ratingphysics.di.appModule
 
-@HiltAndroidApp
-class RatingApp : Application()
+class RatingApp : Application() {
+    override fun onCreate() {
+        super.onCreate()
+        startKoin {
+            androidContext(this@RatingApp)
+            modules(appModule)
+        }
+    }
+}
+

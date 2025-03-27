@@ -3,7 +3,6 @@ package org.penakelex.ratingphysics.feature_rating.presentation.util
 import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
-import android.util.Log
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -31,7 +30,5 @@ fun saveFileToCache(uri: Uri, fileName: String, context: Context): String {
             }
         }
 
-    return destinationFile.absolutePath.also {
-        Log.d("FILE_PATH", it)
-    }
+    return destinationFile.absolutePath
 }

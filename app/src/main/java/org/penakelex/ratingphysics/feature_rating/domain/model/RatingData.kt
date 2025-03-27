@@ -21,5 +21,5 @@ data class RatingData(
     @SerialName("sum_practice") val sumPractice: Float,
     val omissions: UByte,
     @SerialName("practical_lessons") val practicalLessons: List<PracticalLesson>,
-    @SerialName("cgts") val cgts: List<UByte?>,
+    val cgts: List<UByte?>,
 )
